@@ -53,3 +53,5 @@
 Projede kullanılan U-Net mimarisi, özellikle tıbbi görüntü segmentasyonunda "encoder-decoder" yapısı sayesinde nesne sınırlarını belirlemede yüksek başarı sağlamaktadır. MobileNetV2 kullanımı ise modelin hızını optimize ederek düşük donanımlı cihazlarda bile çalışabilmesine olanak tanır.
 
 ### Yasal Uyarı: Bu projede sunulan modeller tıbbi karar destek mekanizmalarıdır. Kesin teşhis için uzman doktor onayı gereklidir.
+
+Bu proje MIT LICENSE ile lisanslanmıştır.

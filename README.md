@@ -1,57 +1,91 @@
 # AI-Powered Medical Image Analysis Suite
 
-Özet: Bu depo, çeşitli tıbbi görüntüleme verileri üzerinde yüksek doğrulukla analiz yapabilen dört farklı derin öğrenme modelini içermektedir. Modeller; hematoloji, nöroloji, oftalmoloji ve radyoloji alanlarında teşhis süreçlerini desteklemek amacıyla optimize edilmiştir.
+Hematoloji, nöroloji, oftalmoloji ve radyoloji alanlarında teşhis süreçlerini desteklemek amacıyla geliştirilmiş dört farklı derin öğrenme (CNN / U-Net) modelini içeren bir depo.
 
-## 🚀 Model Portföyü ve Performans Analizi
+## 1. Problem
 
-- Bu proje kapsamında geliştirilen modellerin teknik metrikleri ve kullanım alanları aşağıda detaylandırılmıştır:
+Tıbbi görüntülerin (mikroskop, MRI, fundus, röntgen) uzman bir hekim tarafından tek tek incelenmesi hem zaman alıcı hem de yoğun iş yükü altında hataya açık bir süreçtir. Bu proje, dört farklı tıbbi görüntüleme türü üzerinde çalışan derin öğrenme modelleri geliştirerek teşhis sürecine hızlı ve tutarlı bir ön değerlendirme katmanı eklemeyi amaçlar:
 
-  ### 1. HemaDeep: Kan Kanseri Tespit Modeli
+| # | Model | Problem | Test Doğruluğu |
+|---|-------|---------|-----------------|
+| 1 | **HemaDeep** | Mikroskobik kan hücresi görüntülerinden 5 sınıf kanser hücresi tespiti (basophil, erythroblast, monocyte, myeloblast, seg_neutrophil) | %99.07 |
+| 2 | **Brain Tumor (U-Net)** | MRI taramalarından 4 sınıf beyin tümörü tespiti (glioma, meningioma, notumor, pituitary) | Val Acc %99.31 |
+| 3 | **Diabetic Retinopathy** | Fundus fotoğraflarından diyabetik retinopati tespiti (DR / No DR) | %96 |
+| 4 | **Pneumonia (U-Net)** | Göğüs röntgenlerinden zatürre tespiti (Normal / Pneumonia) | Val Acc %97.26 |
 
-        Özel olarak geliştirilmiş bir mimari olan HemaDeep, mikroskobik kan görüntülerinden kanser hücrelerini ayırt etmek için tasarlanmıştır.
+Bu modeller **tıbbi karar destek** amaçlıdır; kesin teşhis için uzman doktor onayı gereklidir.
 
-        Test Doğruluğu (Test Acc): %99.07
+## 2. Teknolojiler
 
-  ### 2. Beyin Tümörü Segmentasyonu (U-Net)
+- **Python 3.8+**
+- **TensorFlow / Keras** — model mimarisi, eğitim ve çıkarım
+- **segmentation-models** — U-Net (ResNet-34 backbone) mimarisi
+- **scikit-learn** — veri bölme, metrikler (confusion matrix, classification report)
+- **imbalanced-learn** — sınıf dengesizliği için oversampling
+- **OpenCV / Pillow** — görüntü okuma ve ön işleme
+- **NumPy & Pandas** — veri işleme
+- **Matplotlib & Seaborn** — görselleştirme
+- **kagglehub** — veri setlerinin otomatik indirilmesi
 
-        MRI taramaları üzerinde tümörlü bölgelerin tespiti ve segmentasyonu için U-Net mimarisi kullanılmıştır. Düşük kayıp oranları, modelin piksel bazlı hassasiyetini göstermektedir.
+## 3. Kurulum
 
-        Eğitim Doğruluğu: %99.60 | Eğitim Kaybı (Loss): 0.0264
+```bash
+# Depoyu klonlayın
+git clone <repo-url>
+cd Yapay-Zeka-Modellerim
 
-        Doğrulama Doğruluğu (Val Acc): %99.31 | Doğrulama Kaybı (Val Loss): 0.0345
+# Gerekli paketleri kurun
+pip install tensorflow segmentation-models scikit-learn imbalanced-learn
+pip install opencv-python pillow numpy pandas matplotlib seaborn kagglehub
+```
 
-  ### 3. Diyabetik Retinopati Tespiti (Hybrid MobileNetV2-VGG16)
+> Kaggle veri setlerini indirebilmek için `kagglehub` bir Kaggle hesabı ile kimlik doğrulaması isteyebilir (`kagglehub.login()` veya `~/.kaggle/kaggle.json`).
 
-        Göz dibi (fundus) fotoğrafları üzerinden diyabetik retinopati teşhisi için MobileNetV2 ve VGG16 mimarilerinin güçlü yönlerini birleştiren hibrit bir yaklaşım uygulanmıştır.
+Her model klasörü bağımsız çalışır ve iki betik içerir:
 
-        Genel Doğruluk: %96
+```bash
+cd "Models/<Model Klasörü>"
+python train.py     # Veri setini indirir, modeli eğitir ve kaydeder
+python predict.py    # Kayıtlı modeli TEST/ klasöründeki görsellerle test eder
+```
 
-  ### 4. Zatürre (Pneumonia) Tespiti (U-Net)
+## 4. Özellikler
 
-        Göğüs röntgenleri (X-Ray) üzerinden akciğer enfeksiyonlarını tespit etmek için optimize edilmiş U-Net modelidir.
+- Her model için **veri indirme → ön işleme → eğitim → değerlendirme → kayıt** adımlarını içeren, açıklamalı ve okunabilir `train.py` betikleri.
+- Eğitilmiş modeli yükleyip `TEST/` klasöründeki örnek görüntüler üzerinde tahmin yapan, sonucu görselleştiren `predict.py` betikleri.
+- Sınıf dengesizliği (Diabetic Retinopathy) için otomatik **oversampling**.
+- Tıbbi görüntülere uygun, ölçülü **veri artırma (augmentation)** (küçük açı/kaydırma/parlaklık değişimleri).
+- U-Net tabanlı modellerde (Brain Tumor, Pneumonia) **ResNet-34 omurgası** ile transfer öğrenme.
+- Diabetic Retinopathy modelinde **MobileNetV2 omurgası + çok-başlı dikkat (multi-head attention)** katmanı.
+- **EarlyStopping** ve **ReduceLROnPlateau** callback'leri ile aşırı öğrenmeyi (overfitting) önleyen eğitim döngüsü.
+- Eğitim/doğrulama doğruluk-kayıp grafikleri, karışıklık matrisi (confusion matrix) ve sınıflandırma raporu üretimi.
 
-        Eğitim Doğruluğu: %98.09 | Eğitim Kaybı (Loss): 0.0761
+### Örnek Tahmin Çıktıları
 
-        Doğrulama Doğruluğu (Val Acc): %97.26 | Doğrulama Kaybı (Val Loss): 0.0866
+**HemaDeep — Kan Kanseri Tespiti**
 
-## 🛠️ Kurulum ve Kullanım
+![HemaDeep tahmin örneği](Models/Blood_Cell_Cancer/predict_result.png)
 
-### Gereksinimler
+**Brain Tumor — U-Net**
 
-    Modelleri çalıştırmak için aşağıdaki kütüphanelerin yüklü olması gerekmektedir:
+![Brain Tumor tahmin örneği](Models/Brain%20Tumor/predict_result.png)
 
-    Python 3.8+
+**Diabetic Retinopathy — MobileNetV2**
 
-    TensorFlow / Keras
+![Diabetic Retinopathy tahmin örneği](Models/Diabetic%20Reti/predict_result.png)
 
-    OpenCV
+**Pneumonia — U-Net**
 
-    NumPy & Pandas
+![Pneumonia tahmin örneği](Models/Pneumonia/predict_result.png)
 
-## 📊 Mimari Yapı Hakkında Notlar
+---
 
-Projede kullanılan U-Net mimarisi, özellikle tıbbi görüntü segmentasyonunda "encoder-decoder" yapısı sayesinde nesne sınırlarını belirlemede yüksek başarı sağlamaktadır. MobileNetV2 kullanımı ise modelin hızını optimize ederek düşük donanımlı cihazlarda bile çalışabilmesine olanak tanır.
+### Mimari Notları
 
-### Yasal Uyarı: Bu projede sunulan modeller tıbbi karar destek mekanizmalarıdır. Kesin teşhis için uzman doktor onayı gereklidir.
+U-Net mimarisi, "encoder-decoder" yapısı sayesinde tıbbi görüntü segmentasyonunda nesne sınırlarını belirlemede yüksek başarı sağlar. MobileNetV2 kullanımı ise modelin hızını optimize ederek düşük donanımlı cihazlarda da çalışabilmesine olanak tanır.
+
+### Yasal Uyarı
+
+Bu projede sunulan modeller tıbbi karar destek mekanizmalarıdır. Kesin teşhis için uzman doktor onayı gereklidir.
 
 Bu proje MIT LICENSE ile lisanslanmıştır.
